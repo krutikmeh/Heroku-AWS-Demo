@@ -1,4 +1,4 @@
-------------trigger----------------
+-------------trigger----------------
 
 CREATE OR REPLACE FUNCTION update_counter()
   RETURNS trigger
