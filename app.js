@@ -1,11 +1,12 @@
-const { Client } = require("pg")
 const dotenv = require("dotenv")
 dotenv.config();
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express();
-const query = require('./query');
+const postgresQuery = require('./query');
 const port = 3000;
+const dbConnection = require('./config/db.config');
+var client = dbConnection.myConnection;
 
 app.use(bodyParser.json())
 app.use(
@@ -13,29 +14,6 @@ app.use(
         extended: true,
     })
 )
-
-const connectDb = async () => {
-    try {
-        const client = new Client({
-            user: process.env.PGUSER,
-            host: process.env.PGHOST,
-            database: process.env.PGDATABASE,
-            password: process.env.PGPASSWORD,
-            port: process.env.PGPORT
-        })
-
-        await client.connect()
-        //         const res = await client.query('SELECT * FROM employees')
-        //         console.log(res)
-        const now = await client.query("SELECT NOW()");
-        await client.end();
-        return now;
-    } catch (error) {
-        console.log(error)
-    }
-}
-
-connectDb();
 
 app.get('/', (req, res) => {
 
@@ -68,6 +46,36 @@ app.get('/', (req, res) => {
     console.log(subsetPairNotDivisibleByK(
         arr, N, K));
 
+});
+
+app.get('/getFunctionData', (req, res) => {
+    try {
+        client.query(postgresQuery.functionQuery).then(data=>{
+            res.json({
+                status: 200,
+                data: data.rows
+            })
+        }).catch (err=>{
+            console.log('errorr', err);
+        })
+    } catch (error) {
+        console.log('getFunctionData error==', error);
+    }
+});
+
+app.get('/getJoinData', (req, res) => {
+    try {
+        client.query(postgresQuery.joinQuery).then(data=>{
+            res.json({
+                status: 200,
+                data: data.rows
+            })
+        }).catch (err=>{
+            console.log('errorr', err);
+        })
+    } catch (error) {
+        console.log('getJoinData error==', error);
+    }
 });
 
 app.listen(port, () => {
